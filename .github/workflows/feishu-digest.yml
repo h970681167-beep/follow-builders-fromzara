@@ -1,0 +1,24 @@
+name: Daily Feishu Digest
+ 
+on:
+  schedule:
+    # 每天 02:00 UTC = 北京时间 10:00
+    - cron: '0 2 * * *'
+  workflow_dispatch:  # 也可以手动触发测试
+ 
+jobs:
+  send-digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+ 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+ 
+      - name: Send digest to Feishu
+        env:
+          FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
+        run: python scripts/feishu_deliver.py
