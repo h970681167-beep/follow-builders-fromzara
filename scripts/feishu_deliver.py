@@ -12,7 +12,7 @@ GitHub Secrets 需要：
 import json, os, urllib.request, urllib.error, datetime, sys, textwrap
 
 FEISHU_WEBHOOK   = os.environ["FEISHU_WEBHOOK"]
-ANTHROPIC_KEY    = os.environ.get("ANTHROPIC_API_KEY", "")
+ANTHROPIC_KEY    = os.environ.get("ANTHROPIC_API_KEY", "").strip()
 
 FEED_X        = "feed-x.json"
 FEED_PODCASTS = "feed-podcasts.json"
@@ -34,8 +34,12 @@ def http_post(url, payload, headers=None):
     data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     req  = urllib.request.Request(url, data=data,
                                   headers={"Content-Type": "application/json", **(headers or {})})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        return json.loads(r.read())
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.loads(r.read())
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8")
+        raise Exception(f"HTTP {e.code} from {url}:\n{body}") from e
 
 # ── Claude API：生成中文摘要 ────────────────────────────────────────────────────
 
